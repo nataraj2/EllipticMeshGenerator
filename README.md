@@ -17,7 +17,8 @@ the wall bc regions for the hump region vicinity
 ## Mesh stretching
 Consider stretching in the x coordinate centered at a position `pos` (as a percentage of domain length from xmin). 
 For the case of the ellipsoid, for eg., the center of the ellipsoid is at a $x=1.0$, and domain length is $3.0$. Hence 
-$\mathrm{pos} = 0.333$ is an appropriate choice   
+$\mathrm{pos} = 0.333$ is an appropriate choice. The stretching is done using hyperbolic tangent functions as below  
+
 $\xi = i/nx-1$  
 $u1 = \mathrm{tanh}(\delta(1-\xi))(1-\mathrm{pos})$  
 $u2 = \mathrm{pos}\times(2-\mathrm{tanh}(\delta\xi))$  
