@@ -39,8 +39,7 @@ $\alpha_{22} = a_{11}a_{33}-a^2_{13}$, $\alpha_{23}=a_{13}a_{12}-a_{11}a_{23}$, 
 
 where  
 
-$a_{ij} = (\vec{x}_i, \vec{x}_j)$
-
-
+$a_{12} = a_{\xi\eta} = \frac{partial x}{\partial xi}\frac{\partial x}{\partial\eta} + \frac{partial y}{\partial xi}\frac{\partial y}{\partial\eta}$
+$+ \frac{partial z}{\partial xi}\frac{\partial z}{\partial\eta}$
 
 
