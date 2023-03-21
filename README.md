@@ -21,8 +21,8 @@ $pos = 0.333$ is an appropriate choice
 $\xi = i/nx-1$  
 $u1 = \mathrm{tanh}(\delta(1-\xi))(1-\mathrm{pos})$  
 $u2 = \mathrm{pos}\times(2-\mathrm{tanh}(\delta\xi))$  
-$fac = 1-((u1+u2)-pos)$  
-$x = xmin + fac\times(xmax-xmin)$
+$fac = 1-((u1+u2)-\mathrm{pos})$  
+$x = \mathrm{xmin} + fac\times(\mathrm{xmax}-\mathrm{xmin})$
 
 
 ## The smoothing algorithm
