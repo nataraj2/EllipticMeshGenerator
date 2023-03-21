@@ -34,6 +34,7 @@ $\alpha_{11}\cfrac{\partial^2 y}{\partial \xi^2} + 2\alpha_{12}\cfrac{\partial^2
 where
 
 $\alpha_{11} = a_{22}a_{33}-a^2_{23}$, $\alpha_{12}=a_{13}a_{23}-a_{12}a_{33}$, $\alpha_{13}=a_{12}a_{23}-a_{13}a_{22}$
+$\alpha_{22} = a_{11}a_{33}-a^2_{13}$, $\alpha_{23}=a_{13}a_{12}-a_{11}a_{23}$, $\alpha_{33}=a_{11}a_{22}-a^2_{12}$
 
 
 
