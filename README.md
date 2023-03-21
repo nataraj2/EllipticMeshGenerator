@@ -19,7 +19,8 @@ Consider stretching in the x coordinate centered at a position `pos` (as a perce
 For the case of the ellipsoid, for eg., the center of the ellipsoid is at a $x=1.0$, and domain length is $3.0$. Hence 
 $\mathrm{pos} = 0.333$ is an appropriate choice. The stretching is done using hyperbolic tangent functions as below  
 
-$\xi = i/nx-1$  
+
+$\xi = i/nx-1$, where `i` is the index  
 $u1 = \mathrm{tanh}(\delta(1-\xi))(1-\mathrm{pos})$  
 $u2 = \mathrm{pos}\times(2-\mathrm{tanh}(\delta\xi))$  
 $\mathrm{fac} = 1-((u1+u2)-\mathrm{pos})$  
@@ -30,7 +31,9 @@ $x = \mathrm{xmin} + \mathrm{fac}\times(\mathrm{xmax}-\mathrm{xmin})$
 The elliptic governing equation is solved for the y coordinate to smooth  
 
 $\alpha_{11}\cfrac{\partial^2 y}{\partial \xi^2} + 2\alpha_{12}\cfrac{\partial^2 y}{\partial\xi\partial\eta} + 2\alpha_{13}\cfrac{\partial^2y}{\partial\xi\partial\zeta}+\alpha_{22}\cfrac{\partial^2y}{\partial\eta^2}+2\alpha_{23}\cfrac{\partial^2y}{\partial\eta\partial\zeta}+\alpha_{33}\cfrac{\partial^2y}{\partial\zeta^2} = 0$ 
+where
 
+$\alpha_{11} = a_{22}a_{33}-a{23}^2$, \alpha_{12}=a_{13}a_{23}-a{12}a_{33}, \alpha_{13}=a_{12}a{23}-a{13}a_{22}$
 
 
 
