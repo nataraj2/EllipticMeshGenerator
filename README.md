@@ -33,7 +33,7 @@ The elliptic governing equation is solved for the y coordinate to smooth
 $\alpha_{11}\cfrac{\partial^2 y}{\partial \xi^2} + 2\alpha_{12}\cfrac{\partial^2 y}{\partial\xi\partial\eta} + 2\alpha_{13}\cfrac{\partial^2y}{\partial\xi\partial\zeta}+\alpha_{22}\cfrac{\partial^2y}{\partial\eta^2}+2\alpha_{23}\cfrac{\partial^2y}{\partial\eta\partial\zeta}+\alpha_{33}\cfrac{\partial^2y}{\partial\zeta^2} = 0$ 
 where
 
-$\alpha_{11} = a_{22}a_{33}-a^2{23}, \alpha_{12}=a_{13}a_{23}-a{12}a_{33}, \alpha_{13}=a_{12}a{23}-a{13}a_{22}$
+$\alpha_{11} = a_{22}a_{33}-a^2_{23}, \alpha_{12}=a_{13}a_{23}-a_{12}a_{33}, \alpha_{13}=a_{12}a{23}-a{13}a_{22}$
 
 
 
