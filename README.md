@@ -14,6 +14,16 @@ mpicxx -std=c++14 EllipticMeshGenerator.cpp -o out
 3. Files `file_bc_wall.vtk` and `file_bc_farfield.vtk` which are vtk files to visualize 
 the wall bc regions for the hump region vicinity
 
+# Mesh stretching
+Consider stretching in the x coordinate centered at a position `pos` (as a percentage of domain length from xmin). 
+For the case of the ellipsoid, for eg., the center of the ellipsoid is at a $x=1.0$, and domain length is $3.0#. Hence 
+$pos = 0.333$ is an appropriate choice 
+$\xi = i/nx-1$  
+$u1 = tanh(delta(1-\xi))(1-pos)$  
+$u2 = pos\times(2-tanh(delta\xi))$  
+$fac = 1-((u1+u2)-pos)$  
+$x = xmin + fac(xmax-xmin)$
+
 
 ## The smoothing algorithm
 The elliptic governing equation is solved for the y coordinate to smooth  
