@@ -9,7 +9,7 @@
 
 
 ## Outputs
-1. The code outputs a mesh `file_mesh.vtk` which is a ascii VTK file of the structured mesh 
+1. The code outputs a mesh `file_mesh.vtk` which is an ASCII VTK file of the structured mesh 
 2. A `bc.dat` file which contains the boundary conditions for the bottom wall
 3. Files `file_bc_wall.vtk` and `file_bc_farfield.vtk` which are vtk files to visualize 
 the wall bc regions for the hump region vicinity
