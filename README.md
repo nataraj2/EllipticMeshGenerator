@@ -9,7 +9,7 @@ mpicxx -std=c++14 EllipticMeshGenerator.cpp -o out
 
 
 ## The smoothing algorithm
-The elliptic governing equation is solved for the y coordinate to smooth 
+The elliptic governing equation is solved for the y coordinate to smooth    
 $\alpha\frac{\partial y}{\partial \xi}^2$
 
 
