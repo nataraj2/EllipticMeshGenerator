@@ -28,7 +28,8 @@ $x = \mathrm{xmin} + \mathrm{fac}\times(\mathrm{xmax}-\mathrm{xmin})$
 
 
 ## The smoothing algorithm
-The elliptic governing equation is solved for the y coordinate to smooth  
+The elliptic governing equation is solved for the y coordinate to smooth the mesh. In this particular geoemtry, 
+the x and z directions only need appropriate stretching and no smoothing is necessary. 
 
 $\alpha_{11}\cfrac{\partial^2 y}{\partial \xi^2} + 2\alpha_{12}\cfrac{\partial^2 y}{\partial\xi\partial\eta} + 2\alpha_{13}\cfrac{\partial^2y}{\partial\xi\partial\zeta}+\alpha_{22}\cfrac{\partial^2y}{\partial\eta^2}+2\alpha_{23}\cfrac{\partial^2y}{\partial\eta\partial\zeta}+\alpha_{33}\cfrac{\partial^2y}{\partial\zeta^2} = 0$  
 
