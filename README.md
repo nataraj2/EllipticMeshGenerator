@@ -2,8 +2,8 @@
 
 ## Compilation and running
 
-mpicxx -std=c++14 EllipticMeshGenerator.cpp -o out
-./out
+`mpicxx -std=c++14 EllipticMeshGenerator.cpp -o out`  
+`./out`
 
 ## Inputs
 
