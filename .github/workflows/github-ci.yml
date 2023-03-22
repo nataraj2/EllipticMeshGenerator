@@ -15,18 +15,30 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up C++ build environment
-      uses: marketplace/actions/setup-cpp@v1
+      uses: actions/setup-node@v2
       with:
-        compiler: ${{ matrix.compiler }}
+        node-version: '16.x'
 
-    - name: Build serial/parallel executable
+    - name: Install serial/parallel compiler
       run: |
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}-g++
-        make
+        if [ "${{ matrix.compiler }}" = "serial" ]; then
+          sudo apt-get install g++
+        else
+          sudo apt-get install g++-9
+        fi
+
+    - name: Compile serial/parallel executable
+      run: |
+        if [ "${{ matrix.compiler }}" = "serial" ]; then
+          g++ -o program-serial EllipticMeshGenerator.cpp
+        else
+          g++-9 -o program-parallel EllipticMeshGenerator.cpp -fopenmp
+        fi
 
     - name: Run C++ program with serial/parallel executable
       run: |
-        cd build
-        ./program
+        if [ "${{ matrix.compiler }}" = "serial" ]; then
+          ./program-serial
+        else
+          ./program-parallel
+        fi
