@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    name: Build
+    name: Elliptic mesh generator
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
