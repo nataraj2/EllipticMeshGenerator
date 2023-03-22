@@ -37,6 +37,10 @@ int main()
 	double dely = (ymax-ymin)/float(ny-1);	
 	double delz = (zmax-zmin)/float(nz-1);
 
+	cout << "The mesh dimensions is x, y, z are " << nx << " " << ny << " " << nz << "\n";
+
+	cout << "Initializing mesh generation" << "\n";
+
 // Create the initial mesh slice-by-slice in the z direction
 for(int k=0;k<nz;k++){
 
@@ -154,13 +158,14 @@ for(int k=0;k<nz;k++){
 			
 }// End of k loop. Initial mesh generation for the whole domain ends here for the entire 3d domain
 
+	cout << "Done with initial mesh generation" << "\n";
 
 // Do elliptic smoothing. Smooth only y. Elliptic equation is solved using Gauss-Siedel iteration
 
 
 	for(int iter=0;iter<n_iterations;iter++){ 
 
-		cout << "Doing smoothing iteration " << iter << "\n";
+		cout << "Doing smoothing iteration " << iter+1 << "\n";
 		for(int i=1;i<nx-1;i++){
 			for(int j=1;j<ny-1;j++){
 				for(int k=1;k<nz-1;k++){
@@ -239,6 +244,7 @@ for(int k=0;k<nz;k++){
 	
 	fclose(file_mesh_vtk);
 
+	cout << "Done writing mesh file file_mesh.vtk" << "\n";
 
 	// Write bc.dat
 
@@ -333,6 +339,7 @@ for(int k=0;k<nz;k++){
 	fclose(file_bc_farfield);
 	fclose(bc_file);
 
+	cout << "Done writing boundary conditions file bc.dat" << "\n";
 	// Find the limits
 
 	// Find the i index of the center of the hump
