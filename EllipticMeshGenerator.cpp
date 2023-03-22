@@ -3,9 +3,9 @@
 
 using namespace std;
 
-int nx = 200;
-int ny = 100;
-int nz = 100;
+int nx = 50;
+int ny = 25;
+int nz = 25;
 
 // Parameters defining the ellipsoid
 // (x-x0)^2/a^2 + (y-y0)^2/b^2 + (z-z_0)^2/c^2;
