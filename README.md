@@ -1,8 +1,7 @@
 # Elliptic mesh generator for 3D geometries
 
 ## Final mesh images
-
-![A](Images/EllipticMeshSliceZ.png)  
+![Elliptic mesh](Images/EllipticMeshSliceZ.png)  
 
 ## Compilation and running
 
