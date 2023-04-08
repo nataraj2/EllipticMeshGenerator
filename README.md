@@ -2,9 +2,9 @@
 
 ## Final mesh images
 
-![A 200x100x100 mesh with stretching on a half-ellipsoid](Images/EllipticMeshSlice_Z.png)
-![Slice Y](https://github.com/nataraj2/EllipticMeshGenerator/tree/master/Images/EllipticMeshSlice_Y.png)
-![Slice Z](https://github.com/nataraj2/EllipticMeshGenerator/tree/master/Images/EllipticMeshSlices.png)
+![A](Images/EllipticMeshSliceZ.png)
+![B](Images/EllipticMeshSliceY.png)
+![C](Images/EllipticMeshYZSlices.png)
 
 ## Compilation and running
 
