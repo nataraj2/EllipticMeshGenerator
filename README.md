@@ -2,9 +2,8 @@
 
 ## Final mesh images
 
-<img src="Images/EllipticMeshSliceZ.png" width="800" /> ![A](Images/EllipticMeshSliceZ.png)
-![](Images/EllipticMeshSliceZ.png)
-![C](Images/EllipticMeshYZSlices.png)
+![A](Images/EllipticMeshSliceZ.png)
+![B](Images/EllipticMeshSliceY.png)
 
 ## Compilation and running
 
