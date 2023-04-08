@@ -2,9 +2,7 @@
 
 ## Final mesh images
 
-<img src="Images/EllipticMeshSliceZ.png" alt="alt text" width="50%">
-
-
+<img src="./Images/EllipticMeshSliceZ.png" alt="alt text" width="50%">
 
 ## Compilation and running
 
