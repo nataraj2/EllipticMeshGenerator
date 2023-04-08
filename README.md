@@ -2,6 +2,7 @@
 
 ## Final mesh images
 
+## Image 1
 ![A](Images/EllipticMeshSliceZ.png)
 ## Image 2
 ![B](Images/EllipticMeshSliceY.png)
