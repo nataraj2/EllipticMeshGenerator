@@ -3,7 +3,7 @@
 ## Final mesh images
 
 ![A](Images/EllipticMeshSliceZ.png)
-![B](Images/EllipticMeshSliceY.png)
+![](Images/EllipticMeshSliceY.png)
 ![C](Images/EllipticMeshYZSlices.png)
 
 ## Compilation and running
