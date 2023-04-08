@@ -1,12 +1,16 @@
 # Elliptic mesh generator for 3D geometries
 
+## Final mesh images
+
+![A 200x100x100 mesh with stretching on a half-ellipsoid](https://github.com/nataraj2/EllipticMeshGenerator/tree/master/Images/image.jpg?raw=true)
+
 ## Compilation and running
 
 `mpicxx -std=c++14 EllipticMeshGenerator.cpp -o out`  
 `./out`
 
 ## Inputs
-
+The input geometry is user defined. This example consists of a half-ellipsoid.
 
 ## Outputs
 1. The code outputs a mesh `file_mesh.vtk` which is an ASCII VTK file of the structured mesh 
@@ -44,5 +48,9 @@ $a_{12} = a_{\xi\eta} = \frac{\partial x}{\partial\xi}\frac{\partial x}{\partial
 $+ \frac{\partial z}{\partial \xi}\frac{\partial z}{\partial\eta}$  
 
 The derivatives are approximated using second-order finite differences, and an iterative Gauss-Siedel approach is used to solve the elliptic pde.
+
+
+
+
 
 
