@@ -1,5 +1,10 @@
 # Elliptic mesh generator for 3D geometries
 
+This repository contains the code to generate elliptic-smoothed meshes for three dimensional geometries. 
+The geometry is user-specified. Stretching functions are implemented to cluster the mesh at 
+appropriate regions in the domain, and a elliptic equation based smoothing algorithm is implemented to smooth 
+the mesh.
+
 ## Final mesh images
 ![Elliptic mesh](Images/EllipticMeshSliceZ.png)  
 ![Elliptic mesh](Images/EllipticMeshSliceY.png)  
