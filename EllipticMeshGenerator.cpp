@@ -1,8 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-
+#include <math.h>
 using namespace std;
+
+const double pi = M_PI;
 
 double** Create2DMatrix(int, int);
 int** Create2DMatrix_INT(int, int);
@@ -14,10 +16,16 @@ void Delete3DMatrix(double***&, int, int, int);
 void Delete3DMatrix_INT(int***&, int, int, int);
 void Delete2DMatrix(double**&, int, int);
 
+void get_airfoil_coords(double*&,double*&,int);
 void write_plot3d_grid(double***,double***,double***,int,int,int);
 	
 int main()
 {
+	int npts_afoil = 50;
+	double* x_afoil	= new double[npts_afoil];
+	double* y_afoil	= new double[npts_afoil];
+	get_airfoil_coords(x_afoil,y_afoil,npts_afoil);
+		
 	int nx = 50;
 	int ny = 25;
 	int nz = 25;
@@ -426,6 +434,84 @@ int main()
 	
 	return 0;
 
+}
+
+void get_airfoil_coords(double*& x_af,double*& y_af,int n_afoil)
+{
+	// Airfoil coordinates (see http://airfoiltools.com/airfoil/naca4digit)
+	double M = 0.0;
+	double P = 0.0;
+	double XX = 12.0;
+	
+	double m = M/100.0;
+	double p = 0.1*P;
+	double xx = XX/100.0;
+	
+	//double xUL[n_afoil], yUL[n_afoil];
+	for (int j=0;j<n_afoil;++j)
+	{	
+		// Assign yc and dycdx
+		double beta = pi - j * (2*pi)/(n_afoil-1);
+		double xArf;
+		if (abs(beta)>=pi/2.0){
+			xArf = 1.0 - j*2.0/(n_afoil-1);					
+		}
+		else{
+			xArf = (1.0 - cos(abs(beta)))/2.0;
+		}
+
+		xArf = abs(xArf);
+		
+		// Uncomment to cluster points at the leading edge
+		//double xArf = (1.0 - cos(abs(beta)))/2.0;
+				
+		double yc, dycdx;
+		if (xArf>=0 && xArf<p) {
+			yc = m/pow(p,2.0) * (2.0*p*xArf - pow(xArf,2.0));
+			dycdx = 2.0*m/pow(p,2.0) * (p - xArf);
+		}
+		else if (xArf>=p && xArf<=1.0){
+			yc = m/pow(1.0-p,2.0) * (1.0 - 2.0*p + 2.0*p*xArf - pow(xArf,2.0));
+			dycdx = 2.0*m/pow(1.0-p,2.0) * (p - xArf);
+		}
+		else {
+			cout << "ERROR: xArf should not be greater than 1 or smaller than 0!" << endl;
+			exit (EXIT_FAILURE);
+		}
+		
+		double a0 = 0.2969;
+		double a1 = -0.126;
+		double a2 = -0.3516;
+		double a3 = 0.2843;
+		double a4 = -0.1036; //-0.1015;
+		double yt = xx/0.2 * (a0*pow(xArf,0.5) + a1*xArf + a2*pow(xArf,2.0) + a3*pow(xArf,3.0) + a4*pow(xArf,4.0));
+					
+		double th = atan2(dycdx,1.0);
+		
+		if (beta>=0) {
+			x_af[j] = xArf - yt*sin(th);
+			y_af[j] = yc + yt*cos(th);					
+		}
+		else {
+			x_af[j] = xArf + yt*sin(th);
+			y_af[j] = yc - yt*cos(th);					
+		}
+	}
+	
+	// Write the airfoil coorfinates
+	char filename[20];
+	sprintf(filename, "airfoil_coords.dat");
+	FILE *fid_err = fopen (filename, "w");
+		
+	for (int j=0;j<n_afoil;++j) {	
+		fprintf(fid_err, "%e   %e\n",x_af[j],y_af[j]);
+	}
+	
+	fclose(fid_err);
+	cout << "===============================" << endl;
+	printf("Wrote the airfoil coordinates in file: \"%s\" \n", filename);
+	cout << "===============================" << endl;
+	
 }
 
 void write_plot3d_grid(double*** x,double*** y,double*** z,int Nx,int Ny,int Nz)
