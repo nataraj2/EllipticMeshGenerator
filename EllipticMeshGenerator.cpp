@@ -1,24 +1,36 @@
 #include <iostream>
+#include <fstream>
 #include <cmath>
 
 using namespace std;
 
-int nx = 50;
-int ny = 25;
-int nz = 25;
+double** Create2DMatrix(int, int);
+int** Create2DMatrix_INT(int, int);
+double*** Create3DMatrix(int, int, int);
+int*** Create3DMatrix_INT(int, int, int);
+double**** Create4DMatrix(int, int, int, int);
+void Delete4DMatrix(double****&, int, int, int, int);
+void Delete3DMatrix(double***&, int, int, int);
+void Delete3DMatrix_INT(int***&, int, int, int);
+void Delete2DMatrix(double**&, int, int);
 
-// Parameters defining the ellipsoid
-// (x-x0)^2/a^2 + (y-y0)^2/b^2 + (z-z_0)^2/c^2;
-
-double xmin = 0.0, xmax = 3.0, ymin = 0.0, ymax = 1.0, zmin = 0.0, zmax = 1.0;
-double a = 0.1, b = 0.3, c = 0.1;
-double x0 = 1.0, z0 = 0.5;
-
-// Number of smoothing iterations for the elliptic smoothing
-int n_iterations = 20;
-
+void write_plot3d_grid(double***,double***,double***,int,int,int);
+	
 int main()
 {
+	int nx = 50;
+	int ny = 25;
+	int nz = 25;
+
+	// Parameters defining the ellipsoid
+	// (x-x0)^2/a^2 + (y-y0)^2/b^2 + (z-z_0)^2/c^2;
+
+	double xmin = 0.0, xmax = 3.0, ymin = 0.0, ymax = 1.0, zmin = 0.0, zmax = 1.0;
+	double a = 0.1, b = 0.3, c = 0.1;
+	double x0 = 1.0, z0 = 0.5;
+
+	// Number of smoothing iterations for the elliptic smoothing
+	int n_iterations = 20;
 
 	FILE* file_mesh_vtk;
 	file_mesh_vtk = fopen("file_mesh.vtk", "w");
@@ -31,7 +43,11 @@ int main()
 
 	// Define the coordinate arrays
 
-	double x[nx][ny][nz], y[nx][ny][nz], z[nx][ny][nz];
+	double*** x = Create3DMatrix(nx,ny,nz);
+	double*** y = Create3DMatrix(nx,ny,nz);
+	double*** z = Create3DMatrix(nx,ny,nz);
+
+	//double x[nx][ny][nz], y[nx][ny][nz], z[nx][ny][nz];
 
 	double delx = (xmax-xmin)/float(nx-1);	
 	double dely = (ymax-ymin)/float(ny-1);	
@@ -41,47 +57,43 @@ int main()
 
 	cout << "Initializing mesh generation" << "\n";
 
-// Create the initial mesh slice-by-slice in the z direction
-for(int k=0;k<nz;k++){
-
-	for(int i=0;i<nx;i++){
-		for(int j=0;j<ny;j++){
+	// Create the initial mesh slice-by-slice in the z direction
+	for(int k=0;k<nz;k++){
+		for(int i=0;i<nx;i++){
+			for(int j=0;j<ny;j++){
 				x[i][j][k] = 0.0;
 				y[i][j][k] = 0.0;
 				z[i][j][k] = 0.0;
+			}
 		}
-	}
 
-	// The equation for the ellpsoid is ((x-x0)/a)^2 + ((y-y0)/b)^2 + ((z-z0)/c)^2 = 1
+		// The equation for the ellpsoid is ((x-x0)/a)^2 + ((y-y0)/b)^2 + ((z-z0)/c)^2 = 1
 
-	// Stretch in z
+		// Stretch in z
+		double delta = 4.0;
+		double actual_pos = 0.5;
+		double pos = 1.0-actual_pos;
 
-	double delta = 4.0;
-	double actual_pos = 0.5;
-	double pos = 1.0-actual_pos;
+		double zeta = float(k)/float(nz-1);
+		double u1 = tanh(delta*(1.0-zeta))*(1.0-pos);
+		double u2 = (2.0-tanh(delta*zeta))*pos;
+		double fac = 1.0 - ((u1+u2)-pos);
 
-	double zeta = float(k)/float(nz-1);
-	double u1 = tanh(delta*(1.0-zeta))*(1.0-pos);
-	double u2 = (2.0-tanh(delta*zeta))*pos;
-	double fac = 1.0 - ((u1+u2)-pos);
-
-	for(int i=0;i<nx; i++){
-		for(int j=0;j<ny;j++){
-			z[i][j][k] = zmin + fac*(zmax-zmin);
-		}
-	}
+		for(int i=0;i<nx; i++){
+			for(int j=0;j<ny;j++){
+				z[i][j][k] = zmin + fac*(zmax-zmin);
+			}
+		}	
 	
-	// Stretch in x
+		// Stretch in x
+		double delta_x = 4.0;
+		double actual_pos_x = 1-0.4;
+		double pos_x = 1.0-actual_pos_x;
 
-	double delta_x = 4.0;
-	double actual_pos_x = 1-0.4;
-	double pos_x = 1.0-actual_pos_x;
+		double zval = z[0][0][k];
 
-	double zval = z[0][0][k];
-
-	// Assign values to the boundary values of x and y in this z slice
-
-	if(fabs((zval-z0)/c)<1.0){
+		// Assign values to the boundary values of x and y in this z slice
+		if(fabs((zval-z0)/c)<1.0){
 			for(int i=0;i<nx; i++){
 	
 				double xi = float(i)/float(nx-1);
@@ -100,8 +112,8 @@ for(int k=0;k<nz;k++){
 				}
 				y[i][ny-1][k] = ymax;
 			}
-	}
-	else{
+		}
+		else {
 			for(int i=0;i<nx; i++){
 				double xi = float(i)/float(nx-1);
 				double u1 = tanh(delta_x*(1.0-xi))*(1.0-pos_x);
@@ -115,54 +127,49 @@ for(int k=0;k<nz;k++){
 				y[i][0][k] = ymin;
 				y[i][ny-1][k] = ymax;
 			}
-	}
+		}
 
 
-	// Stretch in y
-	double delta_y = 2.0;
+		// Stretch in y
+		double delta_y = 2.0;
 
-	for(int j=0;j<ny; j++){
-		double eta = float(j)/float(ny-1);
-		double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
-		double val = ymin + fac*(ymax-ymin);
-		y[0][j][k] = val;
-		y[nx-1][j][k] = val;
-		x[0][j][k] = xmin;
-		x[nx-1][j][k] = xmax;
-	}
+		for(int j=0;j<ny; j++){
+			double eta = float(j)/float(ny-1);
+			double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
+			double val = ymin + fac*(ymax-ymin);
+			y[0][j][k] = val;
+			y[nx-1][j][k] = val;
+			x[0][j][k] = xmin;
+			x[nx-1][j][k] = xmax;
+		}
 
-	// Do transfinite interpolation to fill the mesh in the doamin interior using the boundary values of x and y defined above
+		// Do transfinite interpolation to fill the mesh in the domain interior using the boundary values of x and y defined above
+		int m = nx-1;
+		int n = ny-1;
 
-	int m = nx-1;
-	int n = ny-1;
-
-	for(int i=1;i<nx-1; i++){
-		for(int j=1;j<ny-1;j++){
-			x[i][j][k] = float(i)/float(m)*x[m][j][k] + float(m-i)/float(m)*x[0][j][k] + float(j)/float(n)*x[i][n][k] + float(n-j)/float(n)*x[i][0][k] - float(i)/float(m)*float(j)/float(n)*x[m][n][k] - 
+		for(int i=1;i<nx-1; i++){
+			for(int j=1;j<ny-1;j++){
+				x[i][j][k] = float(i)/float(m)*x[m][j][k] + float(m-i)/float(m)*x[0][j][k] + float(j)/float(n)*x[i][n][k] + float(n-j)/float(n)*x[i][0][k] - float(i)/float(m)*float(j)/float(n)*x[m][n][k] - 
 					  float(i)/float(m)*float(n-j)/float(n)*x[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*x[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*x[0][0][k];
 
 			//y[i][j][k] = float(i)/float(m)*y[m][j][k] + float(m-i)/float(m)*y[0][j][k] + float(j)/float(n)*y[i][n][k] + float(n-j)/float(n)*y[i][0][k] - float(i)/float(m)*float(j)/float(n)*y[m][n][k] - 
 			//		  float(i)/float(m)*float(n-j)/float(n)*y[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*y[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*y[0][0][k];
 
 
-
-			double delta_y = 2.0;
-			double eta = float(j)/float(ny-1);
-        	double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
+				double delta_y = 2.0;
+				double eta = float(j)/float(ny-1);
+				double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
 			
-			y[i][j][k] = y[i][0][k] + fac*(y[i][n][k]-y[i][0][k]);
-
-
+				y[i][j][k] = y[i][0][k] + fac*(y[i][n][k]-y[i][0][k]);
+			}
 		}
-	}
-			
-}// End of k loop. Initial mesh generation for the whole domain ends here for the entire 3d domain
+	
+	} // End of k loop. Initial mesh generation for the whole domain ends here for the entire 3d domain
 
 	cout << "Done with initial mesh generation" << "\n";
 
-// Do elliptic smoothing. Smooth only y. Elliptic equation is solved using Gauss-Siedel iteration
 
-
+	// Do elliptic smoothing. Smooth only y. Elliptic equation is solved using Gauss-Siedel iteration
 	for(int iter=0;iter<n_iterations;iter++){ 
 
 		cout << "Doing smoothing iteration " << iter+1 << "\n";
@@ -230,21 +237,23 @@ for(int k=0;k<nz;k++){
 		}
 	}
 			
-
-
 	// Write VTK file
-
-		for(int k=0; k<nz; k++){
-        	for(int j=0; j<ny; j++){
-				for(int i=0; i<nx; i++){
-					fprintf(file_mesh_vtk,"%g %g %g\n", x[i][j][k], y[i][j][k], z[i][j][k]);
-				}
+	for(int k=0; k<nz; k++){
+       	for(int j=0; j<ny; j++){
+			for(int i=0; i<nx; i++){
+				fprintf(file_mesh_vtk,"%g %g %g\n", x[i][j][k], y[i][j][k], z[i][j][k]);
 			}
-		}	
-	
+		}
+	}	
 	fclose(file_mesh_vtk);
 
 	cout << "Done writing mesh file file_mesh.vtk" << "\n";
+
+	// Write PLOT3D file
+	write_plot3d_grid(x,y,z,nx,ny,nz);
+	
+	cout << "Done writing PLOT3D mesh file file_mesh.xyz" << "\n";
+
 
 	// Write bc.dat
 
@@ -410,6 +419,216 @@ for(int k=0;k<nz;k++){
 	fprintf(bc_file, "%d %d %d %d %d %d %d %d %d\n", 1, 21, 2, iend, -1, 1, 1, 1, -1);
 
 	fclose(bc_file);*/
+	
+	Delete3DMatrix(x, nx, ny, nz);
+	Delete3DMatrix(y, nx, ny, nz);
+	Delete3DMatrix(z, nx, ny, nz);
+	
 	return 0;
 
+}
+
+void write_plot3d_grid(double*** x,double*** y,double*** z,int Nx,int Ny,int Nz)
+{
+	ofstream outFile;
+	char filename[] = "test_grid3D.xyz";
+	outFile.open (filename, ios::out | ios::binary);
+
+	int size = 4;
+	int Nblocks = 1;
+	outFile.write((char*) &size, sizeof(int));
+	outFile.write((char*) &Nblocks, sizeof(Nblocks));
+	outFile.write((char*) &size, sizeof(int));
+
+	size = 4*Nblocks*3;
+	outFile.write((char*) &size, sizeof(int));
+	for (int i=0;i<Nblocks;i++)
+	{			
+		outFile.write((char*) &Nx, sizeof(Nx));
+		outFile.write((char*) &Ny, sizeof(Ny));
+		outFile.write((char*) &Nz, sizeof(Nz));
+	}
+	outFile.write((char*) &size, sizeof(int));
+
+	for (int ii=0;ii<Nblocks;++ii)
+	{
+		size = 8*3*Nx*Ny*Nz + 4*Nx*Ny*Nz;
+		outFile.write((char*) &size, sizeof(int));
+		for (int k=0;k<Nz;++k)
+			for (int j=0;j<Ny;++j)
+				for (int i=0;i<Nx;++i)
+				{
+					outFile.write((char*) &x[i][j][k], sizeof(x[i][j][k]));
+				}
+
+		for (int k=0;k<Nz;++k)
+			for (int j=0;j<Ny;++j)
+				for (int i=0;i<Nx;++i)
+				{
+					outFile.write((char*) &y[i][j][k], sizeof(y[i][j][k]));
+				}
+
+		for (int k=0;k<Nz;++k)
+			for (int j=0;j<Ny;++j)
+				for (int i=0;i<Nx;++i)
+				{
+					outFile.write((char*) &z[i][j][k], sizeof(z[i][j][k]));
+				}
+
+		for (int k=0;k<Nz;++k)
+			for (int j=0;j<Ny;++j)
+				for (int i=0;i<Nx;++i)
+				{
+					int tmp = 1;
+					outFile.write((char*) &tmp, sizeof(int));
+				}
+
+		outFile.write((char*) &size, sizeof(int));
+	}
+
+	outFile.close();
+	cout << "===============================" << endl;
+	printf("Wrote \"%s\" \n", filename);
+	cout << "===============================" << endl;
+}
+
+double** Create2DMatrix(int Ni, int Nj)
+{
+    double **the_array = new double* [Ni];
+    double *tempxy = new double[Ni*Nj];
+ 		for ( int i = 0 ; i < Ni; ++i, tempxy += Nj ) {
+			the_array[i] = tempxy;
+    }
+
+    for(int i(0); i < Ni; ++i)
+        for(int j(0); j < Nj; ++j)
+		{	the_array[i][j]= 0.;		}
+
+    /*double** the_array = new double* [Ni];
+    for(int i(0); i < Ni; ++i)
+    {
+        the_array[i] = new double[Nj];
+
+        for(int j(0); j < Nj; ++j)
+        {
+            the_array[i][j] = 0;            
+        }
+    }*/
+
+    return the_array;
+}
+
+int** Create2DMatrix_INT(int Ni, int Nj)
+{
+    int **the_array = new int* [Ni];
+    int *tempxy = new int[Ni*Nj];
+ 		for ( int i = 0 ; i < Ni; ++i, tempxy += Nj ) {
+			the_array[i] = tempxy;
+    }
+
+    for(int i(0); i < Ni; ++i)
+        for(int j(0); j < Nj; ++j)
+		{	the_array[i][j]= 0;		}
+
+    /*int** the_array = new int* [Ni];
+    for(int i(0); i < Ni; ++i)
+    {
+        the_array[i] = new int[Nj];
+
+        for(int j(0); j < Nj; ++j)
+        {
+            the_array[i][j] = 0;            
+        }
+    }*/
+
+    return the_array;
+}
+
+double*** Create3DMatrix(int Nk, int Ni, int Nj)
+{
+    double ***the_array = new double**[Nk];
+    double **tempxy = new double*[Nk*Ni];
+    double *tempxyz = new double[Nk*Ni*Nj];
+    for ( int k = 0 ; k < Nk ; ++k, tempxy += Ni ) {
+        the_array[k] = tempxy;
+		for ( int i = 0 ; i < Ni; ++i, tempxyz += Nj ) {
+			the_array[k][i] = tempxyz;
+    } }
+
+    for(int k(0); k < Nk; ++k)
+        for(int i(0); i < Ni; ++i)
+            for(int j(0); j < Nj; ++j)
+			{	the_array[k][i][j]= 0.;		}
+
+    return the_array;
+}
+
+double**** Create4DMatrix(int Nl, int Ni, int Nj, int Nk)
+{
+    double ****the_array = new double***[Nl];
+    double ***tempxy = new double**[Nl*Ni];
+    double **tempxyz = new double*[Nl*Ni*Nj];
+    double *tempxyzl = new double[Nl*Ni*Nj*Nk];
+    for ( int l = 0 ; l < Nl ; ++l, tempxy += Ni ) {
+        the_array[l] = tempxy;
+		for ( int i = 0 ; i < Ni; ++i, tempxyz += Nj ) {
+			the_array[l][i] = tempxyz;
+			for ( int j = 0 ; j < Nj; ++j, tempxyzl += Nk ) {
+				the_array[l][i][j] = tempxyzl;
+    } } }
+
+    for(int l(0); l < Nl; ++l)
+	    for(int i(0); i < Ni; ++i)
+	        for(int j(0); j < Nj; ++j)
+			    for(int k(0); k < Nk; ++k)
+				{	the_array[l][i][j][k]= 0.;		}
+
+    return the_array;
+}
+
+int*** Create3DMatrix_INT(int Nk, int Ni, int Nj)
+{
+    int ***the_array = new int**[Nk];
+    int **tempxy = new int*[Nk*Ni];
+    int *tempxyz = new int[Nk*Ni*Nj];
+    for ( int k = 0 ; k < Nk ; ++k, tempxy += Ni ) {
+        the_array[k] = tempxy;
+		for ( int i = 0 ; i < Ni; ++i, tempxyz += Nj ) {
+			the_array[k][i] = tempxyz;
+    } }
+
+    for(int k(0); k < Nk; ++k)
+        for(int i(0); i < Ni; ++i)
+            for(int j(0); j < Nj; ++j)
+			{	the_array[k][i][j]= 0.;		}
+
+    return the_array;
+}
+
+void Delete4DMatrix(double****& the_array, int Nl, int Ni, int Nj, int Nk)
+{
+    delete [] the_array[0][0][0];
+    delete [] the_array[0][0];
+    delete [] the_array[0];
+    delete [] the_array;
+}
+
+void Delete3DMatrix(double***& the_array, int Nk, int Ni, int Nj)
+{
+    delete [] the_array[0][0];
+    delete [] the_array[0];
+    delete [] the_array;
+}
+
+void Delete3DMatrix_INT(int***& the_array, int Nk, int Ni, int Nj)
+{
+    delete [] the_array[0][0];
+    delete [] the_array[0];
+    delete [] the_array;
+}
+
+void Delete2DMatrix(double**& the_array, int Ni, int Nj)
+{
+    delete [] the_array[0];
+    delete [] the_array;
 }
