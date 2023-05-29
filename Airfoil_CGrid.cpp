@@ -18,19 +18,19 @@ void Delete2DMatrix(double**&, int, int);
 
 void get_airfoil_coords(double*&,double*&,int);
 void write_plot3d_grid(double*** x,double*** y,double*** z,int Nx,int Ny,int Nz, std::string filename_string);
-void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
-					   double flat_portion, double x_circle_start, double len_y);
 void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z,double zmin, double zmax, 
 				 const double *x_xi_0, const double *x_xi_max, const double *x_eta_0, const double *x_eta_max,
-				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max,
-				 int n_iterations, std::string filename);
+				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max, double delta_y, 
+				 int n_iterations, bool invert, std::string filename);
+void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
+					   double flat_portion, double x_circle_start, double len_y, double delta_y);
 
 void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-							double* x_afoil, double* y_afoil, double len_x, double len_y);
+							double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y);
 
 
 void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil);
+							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y);
 
 int main()
 {
@@ -39,7 +39,7 @@ int main()
 	int nz = 20;
 
 	int npts_afoil = 200;			
-	int ny = 100;
+	int ny = 50;
 
 	// Number of smoothing iterations for the elliptic smoothing
 	int n_iterations = 20;
@@ -47,16 +47,18 @@ int main()
 	// Choose the percentage of chord from the leading edge for the 
 	// C-grid portion
 
-	double c_grid_portion = 40.0;
+	double c_grid_portion = 80.0;
 
 	// Parameters for the C grid portion
-	double flat_portion = 30.0;
+	double flat_portion = 40.0; // Should be less than 50%
 	double len_y = 1.0;
 	double x_circle_start = -0.25;
 
 
 	// Additional length in streamwise direction beyond the trailing edge
 	double len_x = 1.0;
+
+	double delta_y = 2.0;
 
 	// Parameter list ends
 
@@ -82,7 +84,7 @@ int main()
 	// Create the C grid
 
 
-	create_Cgrid_mesh(nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, x_circle_start, len_y);
+	create_Cgrid_mesh(nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, x_circle_start, len_y, delta_y);
 
 
 	// Create the top right mesh
@@ -95,17 +97,17 @@ int main()
 	int n_add = total_nx - indx[0];
 	nx = total_nx; // Additional points
 
-	create_top_right_mesh(nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y);
+	create_top_right_mesh(nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, delta_y);
 
 	// Create the bottom right mesh
 
-	create_bottom_right_mesh(nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, npts_afoil);
+	create_bottom_right_mesh(nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, npts_afoil, delta_y);
 
 	return 0;
 }
 
 void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil)
+							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y)
 {
 
 	double*** x = Create3DMatrix(nx,ny,nz);
@@ -144,7 +146,6 @@ void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, do
 	}
 
 
-	double delta_y = 2.0;
 	
 	for(int j=0;j<ny; j++){
 		double eta = float(j)/float(ny-1);
@@ -157,8 +158,8 @@ void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, do
 	}
 	create_mesh(nx,ny,nz,x,y,z,zmin,zmax,
 				x_xi_0,x_xi_max,x_eta_0,x_eta_max,
-				y_xi_0,y_xi_max,y_eta_0,y_eta_max, 
-				0,"file_mesh_bottom_right.vtk");
+				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
+				0,true,"file_mesh_bottom_right.vtk");
 
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_bottom.xyz");
@@ -166,7 +167,8 @@ void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, do
 }
 
 
-void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, double len_x, double len_y)
+void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
+						   double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y)
 {
 
 	double*** x = Create3DMatrix(nx,ny,nz);
@@ -205,8 +207,6 @@ void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, doubl
 	}
 
 
-	double delta_y = 2.0;
-	
 	for(int j=0;j<ny; j++){
 		double eta = float(j)/float(ny-1);
 		double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
@@ -218,8 +218,8 @@ void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, doubl
 	}
 	create_mesh(nx,ny,nz,x,y,z,zmin,zmax,
 				x_xi_0,x_xi_max,x_eta_0,x_eta_max,
-				y_xi_0,y_xi_max,y_eta_0,y_eta_max, 
-				0,"file_mesh_top_right.vtk");
+				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
+				0,false,"file_mesh_top_right.vtk");
 
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_top.xyz");
@@ -227,7 +227,7 @@ void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, doubl
 }
 
 void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
-					   double flat_portion, double x_circle_start, double len_y){
+					   double flat_portion, double x_circle_start, double len_y, double delta_y){
 	
 	// Define the coordinate arrays
 
@@ -290,8 +290,6 @@ void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int ind
 	double dely_xi_0 = (y_afoil[indx[1]] - (-1.0*len_y))/(ny-1);
 	double dely_xi_max = (len_y - y_afoil[indx[0]])/(ny-1);
 
-	double delta_y = 2.0;
-	
 	for(int j=0;j<ny; j++){
 		double eta = float(j)/float(ny-1);
 		double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
@@ -306,8 +304,8 @@ void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int ind
 
 	create_mesh(nx,ny,nz,x,y,z,zmin,zmax,
 				x_xi_0,x_xi_max,x_eta_0,x_eta_max,
-				y_xi_0,y_xi_max,y_eta_0,y_eta_max, 
-				0,"file_mesh.vtk");
+				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
+				0,false,"file_mesh.vtk");
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_Cgrid.xyz");
 
@@ -315,8 +313,8 @@ void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int ind
 
 void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z, double zmin, double zmax, 
 				 const double *x_xi_0, const double *x_xi_max, const double *x_eta_0, const double *x_eta_max,
-				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max,
-				 int n_iterations, std::string filename)
+				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max, double delta_y, 
+				 int n_iterations, bool invert, std::string filename)
 {
 
 	FILE* file_mesh_vtk;
@@ -392,15 +390,20 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 				x[i][j][k] = float(i)/float(m)*x[m][j][k] + float(m-i)/float(m)*x[0][j][k] + float(j)/float(n)*x[i][n][k] + float(n-j)/float(n)*x[i][0][k] - float(i)/float(m)*float(j)/float(n)*x[m][n][k] - 
 					  float(i)/float(m)*float(n-j)/float(n)*x[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*x[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*x[0][0][k];
 
-			y[i][j][k] = float(i)/float(m)*y[m][j][k] + float(m-i)/float(m)*y[0][j][k] + float(j)/float(n)*y[i][n][k] + float(n-j)/float(n)*y[i][0][k] - float(i)/float(m)*float(j)/float(n)*y[m][n][k] - 
-					  float(i)/float(m)*float(n-j)/float(n)*y[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*y[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*y[0][0][k];
+			//if(use_trans_fine){
+			//	y[i][j][k] = float(i)/float(m)*y[m][j][k] + float(m-i)/float(m)*y[0][j][k] + float(j)/float(n)*y[i][n][k] + float(n-j)/float(n)*y[i][0][k] - float(i)/float(m)*float(j)/float(n)*y[m][n][k] - 
+			//		  float(i)/float(m)*float(n-j)/float(n)*y[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*y[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*y[0][0][k];
+			//}
 
-
-				//double delta_y = 2.0;
-				//double eta = float(j)/float(ny-1);
-				//double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
-			
-				//y[i][j][k] = y[i][0][k] + fac*(y[i][n][k]-y[i][0][k]);
+				double eta = float(j)/float(ny-1);
+				double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
+				if(!invert){
+					y[i][j][k] = y[i][0][k] + fac*(y[i][n][k]-y[i][0][k]);
+				}
+				else{
+					y[i][n-j][k] = y[i][n][k] + fac*(y[i][0][k]-y[i][n][k]);;
+				}
+				
 			}
 		}
 	
