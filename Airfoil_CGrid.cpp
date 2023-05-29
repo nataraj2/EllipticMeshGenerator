@@ -50,7 +50,7 @@ int main()
 	double c_grid_portion = 80.0;
 
 	// Parameters for the C grid portion
-	double flat_portion = 40.0; // Should be less than 50%
+	double flat_portion = 20.0; // Should be less than 50%
 	double len_y = 1.0;
 	double x_circle_start = -0.25;
 
@@ -58,7 +58,7 @@ int main()
 	// Additional length in streamwise direction beyond the trailing edge
 	double len_x = 1.0;
 
-	double delta_y = 2.0;
+	double delta_y = 3.0;
 
 	// Parameter list ends
 
