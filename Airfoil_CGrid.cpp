@@ -38,8 +38,8 @@ int main()
 	double zmin = 0.0, zmax = 1.0;
 	int nz = 20;
 
-	int npts_afoil = 100;			
-	int ny = 20;
+	int npts_afoil = 200;			
+	int ny = 100;
 
 	// Number of smoothing iterations for the elliptic smoothing
 	int n_iterations = 20;
@@ -50,13 +50,15 @@ int main()
 	double c_grid_portion = 40.0;
 
 	// Parameters for the C grid portion
-	double flat_portion = 40.0;
-	double len_y = 0.5;
+	double flat_portion = 30.0;
+	double len_y = 1.0;
 	double x_circle_start = -0.25;
 
 
 	// Additional length in streamwise direction beyond the trailing edge
 	double len_x = 1.0;
+
+	// Parameter list ends
 
 	double* x_afoil	= new double[npts_afoil];
 	double* y_afoil	= new double[npts_afoil];
