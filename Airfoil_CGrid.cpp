@@ -38,27 +38,27 @@ int main()
 	double zmin = 0.0, zmax = 1.0;
 	int nz = 20;
 
-	int npts_afoil = 200;			
-	int ny = 50;
+	int npts_afoil = 100;			
+	int ny = 200;
 
 	// Number of smoothing iterations for the elliptic smoothing
-	int n_iterations = 20;
+	int n_iterations = 0;
 
 	// Choose the percentage of chord from the leading edge for the 
 	// C-grid portion
 
-	double c_grid_portion = 80.0;
+	double c_grid_portion = 100.0;
 
 	// Parameters for the C grid portion
-	double flat_portion = 20.0; // Should be less than 50%
+	double flat_portion = 40.0; // Should be less than 50%
 	double len_y = 1.0;
-	double x_circle_start = -0.25;
+	double x_circle_start = 0.1;
 
 
 	// Additional length in streamwise direction beyond the trailing edge
 	double len_x = 1.0;
 
-	double delta_y = 3.0;
+	double delta_y = 2.0;
 
 	// Parameter list ends
 
@@ -73,12 +73,13 @@ int main()
 	int count = 0;
 	for(int i=0;i<npts_afoil-1;i++){
 		if((x_afoil[i]-val)*(x_afoil[i+1]-val) < 0){
-			indx[count] = i;
-			count++;
+			//indx[count] = i;
+			//count++;
 		}
 	}
 
-	indx[0] = indx[0] + 1;	
+	indx[0] = 0;
+	indx[1] = npts_afoil-1;
 	int nx = indx[1] - indx[0] + 1;
 
 	// Create the C grid
