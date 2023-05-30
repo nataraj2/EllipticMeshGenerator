@@ -62,8 +62,8 @@ int main()
 	double zmin = 0.0, zmax = 1.0;
 	int nz = 20;
 
-	int npts_afoil = 50;			
-	int ny = 20;
+	int npts_afoil = 100;			
+	int ny = 100;
 
 	// Number of smoothing iterations for the elliptic smoothing
 	int n_iterations = 0;
