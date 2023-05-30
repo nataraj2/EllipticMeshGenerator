@@ -6,6 +6,26 @@ using namespace std;
 
 const double pi = M_PI;
 
+class Grid
+{
+	public:
+		int Nx, Ny, Nz;
+		double*** x;
+		double*** y;
+		double*** z;
+		int*** iblank;
+		void Iblanking(int nLev);
+
+		double** rho	;
+		double** ux;
+		double** uy;
+		double** p;
+		double** E;
+		double*** U;
+
+		void set_grids(int n,int Npts_x,int Npts_y,const double xmin[],const double xmax[],const double ymin[],const double ymax[]);
+};
+
 double** Create2DMatrix(int, int);
 int** Create2DMatrix_INT(int, int);
 double*** Create3DMatrix(int, int, int);
@@ -18,23 +38,26 @@ void Delete2DMatrix(double**&, int, int);
 
 void get_airfoil_coords(double*&,double*&,int);
 void write_plot3d_grid(double*** x,double*** y,double*** z,int Nx,int Ny,int Nz, std::string filename_string);
+void write_plot3d_BLOCK_GRID(Grid* grid, int Nblocks);
 void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z,double zmin, double zmax, 
 				 const double *x_xi_0, const double *x_xi_max, const double *x_eta_0, const double *x_eta_max,
 				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max, double delta_y, 
 				 int n_iterations, bool invert, std::string filename);
-void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
+void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
 					   double flat_portion, double x_circle_start, double len_y, double delta_y);
 
-void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
+void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
 							double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y);
 
 
-void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
+void create_bottom_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
 							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y);
 
 int main()
 {
-
+	int Nblocks = 3;
+	Grid* grid = new Grid [Nblocks];
+	
 	double zmin = 0.0, zmax = 1.0;
 	int nz = 20;
 
@@ -50,15 +73,15 @@ int main()
 	double c_grid_portion = 100.0;
 
 	// Parameters for the C grid portion
-	double flat_portion = 40.0; // Should be less than 50%
-	double len_y = 1.0;
-	double x_circle_start = 0.1;
+	double flat_portion = 40.0; // Should be less than 50%  - the total percent of points on the flat portion
+	double len_y = 1.0;		// radius of the circle
+	double x_circle_start = 0.0;	// center of the circle
 
 
 	// Additional length in streamwise direction beyond the trailing edge
-	double len_x = 1.0;
+	double len_x = 1.0;		// only used on the top and the bottom right grid
 
-	double delta_y = 2.0;
+	double delta_y = 2.0;	// stretching in the y direction
 
 	// Parameter list ends
 
@@ -80,15 +103,24 @@ int main()
 
 	indx[0] = 0;
 	indx[1] = npts_afoil-1;
-	int nx = indx[1] - indx[0] + 1;
+	int nx = indx[1] - indx[0] + 1;		// for the C grid
 
 	// Create the C grid
-
-
-	create_Cgrid_mesh(nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, x_circle_start, len_y, delta_y);
+	create_Cgrid_mesh(&grid[0], nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, x_circle_start, len_y, delta_y);
 
 
 	// Create the top right mesh
+	
+	// Find the coordinates of the airfoil on the top and bottom which correspond to this value
+	double pct_afoil = 30.0;
+	val = pct_afoil/100.0*1.0;
+	count = 0;
+	for(int i=0;i<npts_afoil-1;i++){
+		if((x_afoil[i]-val)*(x_afoil[i+1]-val) < 0){
+			indx[count] = i;
+			count++;
+		}
+	}
 
 	int n_points_flat = flat_portion/100.0*nx;
 	double delx_flat = (x_afoil[indx[0]]-x_circle_start)/(n_points_flat-1);
@@ -98,19 +130,83 @@ int main()
 	int n_add = total_nx - indx[0];
 	nx = total_nx; // Additional points
 
-	create_top_right_mesh(nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, delta_y);
+	create_top_right_mesh(&grid[1], nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, delta_y);
 
 	// Create the bottom right mesh
 
-	create_bottom_right_mesh(nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, npts_afoil, delta_y);
+	create_bottom_right_mesh(&grid[2], nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, npts_afoil, delta_y);
+	
+	write_plot3d_BLOCK_GRID(grid,Nblocks);
 
 	return 0;
 }
 
-void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
+void write_plot3d_BLOCK_GRID(Grid* grid, int Nblocks)
+{
+	ofstream outFile;
+	char filename[] = "afoil_block_grid.xyz";
+	outFile.open (filename, ios::out | ios::binary);
+
+	int size = 4;
+	outFile.write((char*) &size, sizeof(int));
+	outFile.write((char*) &Nblocks, sizeof(Nblocks));
+	outFile.write((char*) &size, sizeof(int));
+
+	size = 4*Nblocks*3;
+	outFile.write((char*) &size, sizeof(int));
+	for (int i=0;i<Nblocks;i++)
+	{			
+		outFile.write((char*) &grid[i].Nx, sizeof(grid[i].Nx));
+		outFile.write((char*) &grid[i].Ny, sizeof(grid[i].Ny));
+		outFile.write((char*) &grid[i].Nz, sizeof(grid[i].Nz));
+	}
+	outFile.write((char*) &size, sizeof(int));
+
+	for (int ii=0;ii<Nblocks;++ii)
+	{
+		size = 8*3*grid[ii].Nx*grid[ii].Ny*grid[ii].Nz + 4*grid[ii].Nx*grid[ii].Ny*grid[ii].Nz;
+		outFile.write((char*) &size, sizeof(int));
+		for (int k=0;k<grid[ii].Nz;++k)
+			for (int j=0;j<grid[ii].Ny;++j)
+				for (int i=0;i<grid[ii].Nx;++i)
+				{
+					outFile.write((char*) &grid[ii].x[i][j][k], sizeof(grid[ii].x[i][j][k]));
+				}
+
+		for (int k=0;k<grid[ii].Nz;++k)
+			for (int j=0;j<grid[ii].Ny;++j)
+				for (int i=0;i<grid[ii].Nx;++i)
+				{
+					outFile.write((char*) &grid[ii].y[i][j][k], sizeof(grid[ii].y[i][j][k]));
+				}
+
+		for (int k=0;k<grid[ii].Nz;++k)
+			for (int j=0;j<grid[ii].Ny;++j)
+				for (int i=0;i<grid[ii].Nx;++i)
+				{
+					outFile.write((char*) &grid[ii].z[i][j][k], sizeof(grid[ii].z[i][j][k]));
+				}
+
+		for (int k=0;k<grid[ii].Nz;++k)
+			for (int j=0;j<grid[ii].Ny;++j)
+				for (int i=0;i<grid[ii].Nx;++i)
+				{
+					int tmp = 1;
+					outFile.write((char*) &tmp, sizeof(int));
+				}
+
+		outFile.write((char*) &size, sizeof(int));
+	}
+
+	outFile.close();
+	cout << "===============================" << endl;
+	printf("Wrote \"%s\" \n", filename);
+	cout << "===============================" << endl;
+}
+
+void create_bottom_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
 							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y)
 {
-
 	double*** x = Create3DMatrix(nx,ny,nz);
 	double*** y = Create3DMatrix(nx,ny,nz);
 	double*** z = Create3DMatrix(nx,ny,nz);
@@ -164,11 +260,29 @@ void create_bottom_right_mesh(int nx, int ny, int nz, int n_add, double zmin, do
 
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_bottom.xyz");
-
+	
+	gl->Nx = nx;
+	gl->Ny = ny;
+	gl->Nz = nz;
+	gl->x = Create3DMatrix(nx,ny,nz);
+	gl->y = Create3DMatrix(nx,ny,nz);
+	gl->z = Create3DMatrix(nx,ny,nz);
+	for (int k=0;k<nz;++k)
+		for (int j=0;j<ny;++j)
+			for (int i=0;i<nx;++i)
+			{
+				gl->x[i][j][k] = x[i][j][k];
+				gl->y[i][j][k] = y[i][j][k];
+				gl->z[i][j][k] = z[i][j][k];
+			}
+			
+	Delete3DMatrix(x, nx, ny, nz);
+	Delete3DMatrix(y, nx, ny, nz);
+	Delete3DMatrix(z, nx, ny, nz);
 }
 
 
-void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
+void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
 						   double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y)
 {
 
@@ -224,14 +338,31 @@ void create_top_right_mesh(int nx, int ny, int nz, int n_add, double zmin, doubl
 
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_top.xyz");
-
+	
+	gl->Nx = nx;
+	gl->Ny = ny;
+	gl->Nz = nz;
+	gl->x = Create3DMatrix(nx,ny,nz);
+	gl->y = Create3DMatrix(nx,ny,nz);
+	gl->z = Create3DMatrix(nx,ny,nz);
+	for (int k=0;k<nz;++k)
+		for (int j=0;j<ny;++j)
+			for (int i=0;i<nx;++i)
+			{
+				gl->x[i][j][k] = x[i][j][k];
+				gl->y[i][j][k] = y[i][j][k];
+				gl->z[i][j][k] = z[i][j][k];
+			}
+			
+	Delete3DMatrix(x, nx, ny, nz);
+	Delete3DMatrix(y, nx, ny, nz);
+	Delete3DMatrix(z, nx, ny, nz);
 }
 
-void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
-					   double flat_portion, double x_circle_start, double len_y, double delta_y){
-	
+void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
+					   double flat_portion, double x_circle_start, double len_y, double delta_y)
+{	
 	// Define the coordinate arrays
-
 	double*** x = Create3DMatrix(nx,ny,nz);
 	double*** y = Create3DMatrix(nx,ny,nz);
 	double*** z = Create3DMatrix(nx,ny,nz);
@@ -309,7 +440,25 @@ void create_Cgrid_mesh(int nx, int ny, int nz, double zmin, double zmax, int ind
 				0,false,"file_mesh.vtk");
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_Cgrid.xyz");
-
+	
+	gl->Nx = nx;
+	gl->Ny = ny;
+	gl->Nz = nz;
+	gl->x = Create3DMatrix(nx,ny,nz);
+	gl->y = Create3DMatrix(nx,ny,nz);
+	gl->z = Create3DMatrix(nx,ny,nz);
+	for (int k=0;k<nz;++k)
+		for (int j=0;j<ny;++j)
+			for (int i=0;i<nx;++i)
+			{
+				gl->x[i][j][k] = x[i][j][k];
+				gl->y[i][j][k] = y[i][j][k];
+				gl->z[i][j][k] = z[i][j][k];
+			}
+			
+	Delete3DMatrix(x, nx, ny, nz);
+	Delete3DMatrix(y, nx, ny, nz);
+	Delete3DMatrix(z, nx, ny, nz);
 }
 
 void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z, double zmin, double zmax, 
