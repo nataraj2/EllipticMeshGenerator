@@ -66,7 +66,7 @@ int main()
 	int ny = 100;
 
 	// Number of smoothing iterations for the elliptic smoothing
-	int n_iterations = 0;
+	int n_iterations = 10;
 
 	// Choose the percentage of chord from the leading edge for the 
 	// C-grid portion
@@ -114,7 +114,7 @@ int main()
 	// Create the top right mesh
 	
 	// Find the coordinates of the airfoil on the top and bottom which correspond to this value
-	double pct_afoil = 30.0;
+	double pct_afoil = 70.0;
 	val = pct_afoil/100.0*1.0;
 	count = 0;
 	for(int i=0;i<npts_afoil-1;i++){
@@ -123,6 +123,10 @@ int main()
 			count++;
 		}
 	}
+
+	indx[0] = indx[0]+1;
+
+	std::cout << "The airfoil surface is from 1 to " << indx[0]+1 << "\n";
 
 	int n_points_flat = flat_portion/100.0*nx;
 	double delx_flat = (x_afoil[indx[0]]-x_circle_start)/(n_points_flat-1);
