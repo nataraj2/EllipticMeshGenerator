@@ -43,15 +43,16 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 				 const double *x_xi_0, const double *x_xi_max, const double *x_eta_0, const double *x_eta_max,
 				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max, double delta_y, 
 				 int n_iterations, bool invert, std::string filename);
+
 void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
-					   double flat_portion, double x_circle_start, double len_y, double delta_y);
+					   double flat_portion, double x_circle_start, double len_y, double delta_y, int n_iterations);
 
 void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-							double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y);
+							double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y, int n_iterations);
 
 
 void create_bottom_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y);
+							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y, int n_iterations);
 
 int main()
 {
@@ -62,7 +63,7 @@ int main()
 	int nz = 20;
 
 	int npts_afoil = 100;			
-	int ny = 200;
+	int ny = 100;
 
 	// Number of smoothing iterations for the elliptic smoothing
 	int n_iterations = 0;
@@ -73,6 +74,7 @@ int main()
 	double c_grid_portion = 100.0;
 
 	// Parameters for the C grid portion
+
 	double flat_portion = 40.0; // Should be less than 50%  - the total percent of points on the flat portion
 	double len_y = 1.0;		// radius of the circle
 	double x_circle_start = 0.0;	// center of the circle
@@ -106,8 +108,8 @@ int main()
 	int nx = indx[1] - indx[0] + 1;		// for the C grid
 
 	// Create the C grid
-	create_Cgrid_mesh(&grid[0], nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, x_circle_start, len_y, delta_y);
 
+	create_Cgrid_mesh(&grid[0], nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, x_circle_start, len_y, delta_y, n_iterations);
 
 	// Create the top right mesh
 	
@@ -130,11 +132,11 @@ int main()
 	int n_add = total_nx - indx[0];
 	nx = total_nx; // Additional points
 
-	create_top_right_mesh(&grid[1], nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, delta_y);
+	create_top_right_mesh(&grid[1], nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, delta_y, n_iterations);
 
 	// Create the bottom right mesh
 
-	create_bottom_right_mesh(&grid[2], nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, npts_afoil, delta_y);
+	create_bottom_right_mesh(&grid[2], nx, ny, nz, n_add, zmin, zmax, indx, x_afoil, y_afoil, len_x, len_y, npts_afoil, delta_y, n_iterations);
 	
 	write_plot3d_BLOCK_GRID(grid,Nblocks);
 
@@ -205,7 +207,7 @@ void write_plot3d_BLOCK_GRID(Grid* grid, int Nblocks)
 }
 
 void create_bottom_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-							  double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y)
+							double* x_afoil, double* y_afoil, double len_x, double len_y, int npts_afoil, double delta_y, int n_iterations)
 {
 	double*** x = Create3DMatrix(nx,ny,nz);
 	double*** y = Create3DMatrix(nx,ny,nz);
@@ -256,7 +258,7 @@ void create_bottom_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, doubl
 	create_mesh(nx,ny,nz,x,y,z,zmin,zmax,
 				x_xi_0,x_xi_max,x_eta_0,x_eta_max,
 				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
-				0,true,"file_mesh_bottom_right.vtk");
+				n_iterations,true,"file_mesh_bottom_right.vtk");
 
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_bottom.xyz");
@@ -281,9 +283,8 @@ void create_bottom_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, doubl
 	Delete3DMatrix(z, nx, ny, nz);
 }
 
-
 void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
-						   double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y)
+						   double* x_afoil, double* y_afoil, double len_x, double len_y, double delta_y, int n_iterations)
 {
 
 	double*** x = Create3DMatrix(nx,ny,nz);
@@ -334,7 +335,7 @@ void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double z
 	create_mesh(nx,ny,nz,x,y,z,zmin,zmax,
 				x_xi_0,x_xi_max,x_eta_0,x_eta_max,
 				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
-				0,false,"file_mesh_top_right.vtk");
+				n_iterations,false,"file_mesh_top_right.vtk");
 
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_top.xyz");
@@ -360,8 +361,8 @@ void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double z
 }
 
 void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
-					   double flat_portion, double x_circle_start, double len_y, double delta_y)
-{	
+					   double flat_portion, double x_circle_start, double len_y, double delta_y, int n_iterations)
+{
 	// Define the coordinate arrays
 	double*** x = Create3DMatrix(nx,ny,nz);
 	double*** y = Create3DMatrix(nx,ny,nz);
@@ -437,7 +438,7 @@ void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zma
 	create_mesh(nx,ny,nz,x,y,z,zmin,zmax,
 				x_xi_0,x_xi_max,x_eta_0,x_eta_max,
 				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
-				0,false,"file_mesh.vtk");
+				n_iterations,false,"file_mesh.vtk");
 
 	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_Cgrid.xyz");
 	
@@ -540,10 +541,8 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 				x[i][j][k] = float(i)/float(m)*x[m][j][k] + float(m-i)/float(m)*x[0][j][k] + float(j)/float(n)*x[i][n][k] + float(n-j)/float(n)*x[i][0][k] - float(i)/float(m)*float(j)/float(n)*x[m][n][k] - 
 					  float(i)/float(m)*float(n-j)/float(n)*x[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*x[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*x[0][0][k];
 
-			//if(use_trans_fine){
 			//	y[i][j][k] = float(i)/float(m)*y[m][j][k] + float(m-i)/float(m)*y[0][j][k] + float(j)/float(n)*y[i][n][k] + float(n-j)/float(n)*y[i][0][k] - float(i)/float(m)*float(j)/float(n)*y[m][n][k] - 
 			//		  float(i)/float(m)*float(n-j)/float(n)*y[m][0][k] - float(m-i)/float(m)*float(j)/float(n)*y[0][n][k] - float(m-i)/float(m)*float(n-j)/float(n)*y[0][0][k];
-			//}
 
 				double eta = float(j)/float(ny-1);
 				double fac = 1.0 + tanh(delta_y*(eta-1))/tanh(delta_y);
@@ -568,7 +567,7 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 		cout << "Doing smoothing iteration " << iter+1 << "\n";
 		for(int i=1;i<nx-1;i++){
 			for(int j=1;j<ny-1;j++){
-				for(int k=1;k<nz-1;k++){
+				for(int k=0;k<nz;k++){
 
 					double dxdxi = (x[i+1][j][k]-x[i-1][j][k])/2.0;
 					double dydxi = (y[i+1][j][k]-y[i-1][j][k])/2.0;
@@ -586,19 +585,19 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 					double a_11, a_12, a_13, a_22, a_23, a_33;
 					double alpha_11, alpha_12, alpha_13, alpha_22, alpha_23, alpha_33;
 
-					a_11 = dxdxi*dxdxi     + dydxi*dydxi     + dzdxi*dzdxi;
-					a_12 = dxdxi*dxdeta   + dydxi*dydeta    + dzdxi*dzdeta;
-					a_13 = dxdxi*dxdzeta   + dydxi*dydzeta   + dzdxi*dzdzeta;
-					a_22 = dxdeta*dxdeta   + dydeta*dydeta   + dzdeta*dzdeta;
-					a_23 = dxdeta*dxdzeta  + dydeta*dydzeta  + dzdeta*dzdzeta;
-					a_33 = dxdzeta*dxdzeta + dydzeta*dydzeta + dzdzeta*dzdzeta;
+					a_11 = dxdxi*dxdxi    + dydxi*dydxi ;
+					a_12 = dxdxi*dxdeta   + dydxi*dydeta ;
+					a_13 = 0.0;
+					a_22 = dxdeta*dxdeta   + dydeta*dydeta;
+					a_23 = 0.0 ;
+					a_33 = 0.0;
 
-					alpha_11 = a_22*a_33 - a_23*a_23;
-					alpha_12 = a_13*a_23 - a_12*a_33;
-					alpha_13 = a_12*a_23 - a_13*a_22;
-					alpha_22 = a_11*a_33 - a_13*a_13;
-					alpha_23 = a_13*a_12 - a_11*a_23;
-					alpha_33 = a_11*a_22 - a_12*a_12;
+					alpha_11 = a_22;
+					alpha_12 = -a_12;
+					alpha_13 = 0.0;
+					alpha_22 = a_11;
+					alpha_23 = 0.0;
+					alpha_33 = 0.0;
 	
 					double d2xdxi2_part  = (x[i+1][j][k]+x[i-1][j][k]);
 					double d2ydxi2_part  = (y[i+1][j][k]+y[i-1][j][k]);
@@ -619,11 +618,11 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 					double d2ydxidzeta = ((y[i+1][j][k+1]-y[i-1][j][k+1])/2.0 - (y[i+1][j][k-1]-y[i-1][j][k-1])/2.0)/2.0; 
 					
 	
-					double fac = 2.0*(alpha_11+alpha_22+alpha_33);
+					double fac = 2.0*(alpha_11+alpha_22);
 					
 		
-					//x[i][j] = (alpha*d2xdxi2_part - 2.0*beta*d2xdxideta + gamma*d2xdeta2_part)/fac;
 					y[i][j][k] = (alpha_11*d2ydxi2_part + 2.0*alpha_12*d2ydxideta + alpha_22*d2ydeta2_part + alpha_33*d2ydzeta2_part )/fac;
+					x[i][j][k] = (alpha_11*d2xdxi2_part + 2.0*alpha_12*d2xdxideta + alpha_22*d2xdeta2_part)/fac;
 
 				}
 			}
@@ -631,23 +630,21 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 	}
 			
 	// Write VTK file
-	for(int k=0; k<nz; k++){
-       	for(int j=0; j<ny; j++){
-			for(int i=0; i<nx; i++){
-				fprintf(file_mesh_vtk,"%g %g %g\n", x[i][j][k], y[i][j][k], z[i][j][k]);
-			}
-		}
-	}	
-	fclose(file_mesh_vtk);
+	//for(int k=0; k<nz; k++){
+    //   	for(int j=0; j<ny; j++){
+	//		for(int i=0; i<nx; i++){
+	//			fprintf(file_mesh_vtk,"%g %g %g\n", x[i][j][k], y[i][j][k], z[i][j][k]);
+	//		}
+	//	}
+	//}	
+	//fclose(file_mesh_vtk);
 
-	cout << "Done writing mesh file file_mesh.vtk" << "\n";
+	//cout << "Done writing mesh file file_mesh.vtk" << "\n";
 
 	
 	cout << "Done writing PLOT3D mesh file file_mesh.xyz" << "\n";
 
 }
-
-	
 
 
 	// Create the boundary values for the domain, and send it to the function to create the mesh
