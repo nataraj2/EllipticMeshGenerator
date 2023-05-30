@@ -66,7 +66,7 @@ int main()
 	int ny = 100;
 
 	// Number of smoothing iterations for the elliptic smoothing
-	int n_iterations = 0;
+	int n_iterations = 20;
 
 	// Choose the percentage of chord from the leading edge for the 
 	// C-grid portion
