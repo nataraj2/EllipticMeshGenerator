@@ -44,7 +44,7 @@ void create_mesh(int nx, int ny, int nz, double***& x, double***&y, double***& z
 				 const double *y_xi_0, const double *y_xi_max, const double *y_eta_0, const double *y_eta_max, double delta_y, 
 				 int n_iterations, bool invert, std::string filename);
 
-void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
+void create_OGrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
 					   double flat_portion, double semicircle_portion, double x_circle_start, double len_y, double delta_y, int n_iterations);
 
 void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double zmin, double zmax, int indx[2], 
@@ -117,7 +117,7 @@ int main()
 
 	// Create the C grid
 
-	create_Cgrid_mesh(&grid[0], nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, semicircle_portion, x_circle_start, len_y, delta_y, n_iterations);
+	create_OGrid_mesh(&grid[0], nx, ny, nz, zmin, zmax, indx, x_afoil, y_afoil, flat_portion, semicircle_portion, x_circle_start, len_y, delta_y, n_iterations);
 
 	// Create the top right mesh
 	
@@ -372,7 +372,7 @@ void create_top_right_mesh(Grid* gl, int nx, int ny, int nz, int n_add, double z
 	Delete3DMatrix(z, nx, ny, nz);
 }
 
-void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
+void create_OGrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zmax, int indx[2], double* x_afoil, double* y_afoil, 
 					   double flat_portion, double semicircle_portion, double x_circle_start, double len_y, double delta_y, int n_iterations)
 {
 	// Define the coordinate arrays
@@ -477,7 +477,7 @@ void create_Cgrid_mesh(Grid* gl, int nx, int ny, int nz, double zmin, double zma
 				y_xi_0,y_xi_max,y_eta_0,y_eta_max, delta_y,  
 				n_iterations,false,"file_mesh.vtk");
 
-	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_Cgrid.xyz");
+	write_plot3d_grid(x,y,z,nx,ny,nz,"mesh_OGrid.xyz");
 	
 	gl->Nx = nx;
 	gl->Ny = ny;
