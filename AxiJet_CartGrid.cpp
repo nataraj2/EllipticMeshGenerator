@@ -181,6 +181,9 @@ void write_plot3d_grid(double*** x,double*** y,double*** z,int Nx,int Ny,int Nz,
 				for (int i=0;i<Nx;++i)
 				{
 					int tmp = 1;
+					if (y[i][j][k]>=1.0 && y[i][j][k]<=1.05 && x[i][j][k]<=6.0) {
+						tmp = 0;
+					}
 					outFile.write((char*) &tmp, sizeof(int));
 				}
 
